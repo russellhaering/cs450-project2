@@ -7,7 +7,7 @@ UNAME := $(shell uname)
 CFLAGS = -Wall
 
 ifeq ($(UNAME), Darwin)
-  GLFLAGS = -framework GLUT -framework OpenGL -framework Cocoa
+  GLFLAGS = -framework GLUT -framework OpenGL -framework GLUI
 endif
 ifeq ($(UNAME), Linux)
   GLFLAGS = -lGL -lGLU -lglut -lglui
