@@ -53,9 +53,9 @@ void colorCB(int id)
 void myGlutDisplay(void)
 {
 
-  glClear( GL_COLOR_BUFFER_BIT  | GL_DEPTH_BUFFER_BIT);
+  glClear(GL_COLOR_BUFFER_BIT  | GL_DEPTH_BUFFER_BIT);
   //Use color as the color to use when shading, combined with light
-  glColorMaterial(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE);
+  glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
   //Draw the scene here...you fill in the rest
 
 }
@@ -104,31 +104,29 @@ int main(int argc, char **argv)
 
    // setup glut
   glutInit(&argc, argv);
-  glutInitDisplayMode( GLUT_RGB | GLUT_DOUBLE );
-  glutInitWindowPosition( 50, 50 );
-  glutInitWindowSize( WIN_WIDTH, WIN_HEIGHT);
+  glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
+  glutInitWindowPosition(50, 50);
+  glutInitWindowSize(WIN_WIDTH, WIN_HEIGHT);
 
   //You'll need a handle for your main window for GLUI
-  main_window = glutCreateWindow( "OBJ Loader" );
-  glutDisplayFunc( myGlutDisplay );
+  main_window = glutCreateWindow("OBJ Loader");
+  glutDisplayFunc(myGlutDisplay);
   glutReshapeFunc(myGlutReshape);
-  glutMouseFunc( myGlutMouse );
+  glutMouseFunc(myGlutMouse);
 
   // Initialize my Scene
   initScene();
 
   //Build the GU
-  glui = GLUI_Master.create_glui( "OBJ Loader GUI", 0, 600, 50 );
-
-  /* Two ways...new vs. add */
+  glui = GLUI_Master.create_glui("OBJ Loader GUI", 0, 600, 50);
 
   GLUI_Panel *objPanel = glui->add_panel("Obj Files");
-  objFileNameTextField = glui->add_edittext_to_panel(objPanel, "Filename:",GLUI_EDITTEXT_TEXT,0,OBJ_TEXTFIELD,textCB);
+  objFileNameTextField = glui->add_edittext_to_panel(objPanel, "Filename:", GLUI_EDITTEXT_TEXT, 0, OBJ_TEXTFIELD, textCB);
   glui->add_button_to_panel(objPanel, "Load", LOAD_BUTTON, buttonCB);
   glui->add_separator();
 
   GLUI_Panel *projPanel = glui->add_panel("Projection");
-  GLUI_RadioGroup *projGroup = glui->add_radiogroup_to_panel(projPanel, &projType, -1,projCB);
+  GLUI_RadioGroup *projGroup = glui->add_radiogroup_to_panel(projPanel, &projType, -1, projCB);
   glui->add_radiobutton_to_group(projGroup, "Orthographic");
   glui->add_radiobutton_to_group(projGroup, "Perspective");
   GLUI_Spinner *fovSpinner = glui->add_spinner_to_panel(projPanel, "FOV", GLUI_SPINNER_INT, &fov, FOV, projCB);
@@ -138,15 +136,15 @@ int main(int argc, char **argv)
   /* These should be done with floats but the speed won't work */
   GLUI_Spinner *redValue = glui->add_spinner_to_panel(colorPanel, "Red", 2, &red, RED, colorCB);
   redValue->set_int_limits(0, 255);
-  GLUI_Spinner *greenValue = glui->add_spinner_to_panel(colorPanel, "Green", 2, &green,GREEN, colorCB);
-  greenValue->set_int_limits(0,255);
+  GLUI_Spinner *greenValue = glui->add_spinner_to_panel(colorPanel, "Green", 2, &green, GREEN, colorCB);
+  greenValue->set_int_limits(0, 255);
   GLUI_Spinner *blueValue = glui->add_spinner_to_panel(colorPanel, "Blue", 2, &blue, BLUE, colorCB);
   blueValue->set_int_limits(0, 255);
-  glui->set_main_gfx_window( main_window );
+  glui->set_main_gfx_window(main_window);
 
   // We register the idle callback with GLUI, *not* with GLUT
-  //GLUI_Master.set_glutIdleFunc( myGlutIdle );
-  GLUI_Master.set_glutIdleFunc( NULL );
+  //GLUI_Master.set_glutIdleFunc(myGlutIdle);
+  GLUI_Master.set_glutIdleFunc(NULL);
   glutMainLoop();
   return EXIT_SUCCESS;
 }
