@@ -1,6 +1,8 @@
 #ifndef __OBJ_H
 #define __OBJ_H
 
+#define LINEBUF_SIZE 256
+
 // Types of vertices
 
 struct vertex {
@@ -25,9 +27,9 @@ struct vertex_normal {
 
 struct face {
   int count;
-  struct vertex *vs;
-  struct vertex_texture *vts;
-  struct vertex_normal *vns;
+  struct vertex **vs;
+  struct vertex_texture **vts;
+  struct vertex_normal **vns;
 };
 
 // Dynamic array
