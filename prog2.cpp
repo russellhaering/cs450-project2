@@ -11,8 +11,8 @@
 
 /** Constants and enums **/
 enum buttonTypes {OBJ_TEXTFIELD = 0, LOAD_BUTTON};
-enum colors { RED, GREEN, BLUE};
-enum projections { ORTHO, PERSP, FOV};
+enum colors {RED, GREEN, BLUE};
+enum projections {ORTHO, PERSP, FOV};
 
 const int WIN_WIDTH = 500;
 const int WIN_HEIGHT = 500;
@@ -27,7 +27,7 @@ int fov = 30;
 int projType = ORTHO;
 
 /** Globals **/
-struct obj_data *data;
+struct obj_data *data = NULL;
 GLUI *glui;
 GLUI_EditText *objFileNameTextField;
 
@@ -45,6 +45,7 @@ void textCB(int id)
 void buttonCB(int control)
 {
   data = load_obj_file(objFileNameTextField->get_text());
+  glutPostRedisplay();
 }
 
 void colorCB(int id)
@@ -54,11 +55,23 @@ void colorCB(int id)
 
 void myGlutDisplay(void)
 {
+  int i;
+  struct face *f;
   glClear(GL_COLOR_BUFFER_BIT  | GL_DEPTH_BUFFER_BIT);
   //Use color as the color to use when shading, combined with light
   glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
   //Draw the scene here...you fill in the rest
 
+  if (data == NULL) {
+    printf("Nothing to render\n");
+    return;
+  }
+
+  for (i = 0; i < data->faces->count; i++) {
+    f = (struct face *) data->faces->items[i];
+  }
+
+  printf("Rendered %d faces\n", i);
 }
 
 void myGlutReshape(int x, int y)
