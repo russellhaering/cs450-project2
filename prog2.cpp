@@ -1,4 +1,5 @@
 #include <stdlib.h> /* Must come first to avoid redef error */
+#include <stdio.h>
 
 #ifdef __APPLE__
 #include <GLUI/glui.h>
@@ -38,28 +39,27 @@ void projCB(int id)
 
 void textCB(int id)
 {
-}
-void buttonCB(int control)
-{
+
 }
 
+void buttonCB(int control)
+{
+  data = load_obj_file(objFileNameTextField->get_text());
+}
 
 void colorCB(int id)
 {
 
 }
 
-
 void myGlutDisplay(void)
 {
-
   glClear(GL_COLOR_BUFFER_BIT  | GL_DEPTH_BUFFER_BIT);
   //Use color as the color to use when shading, combined with light
   glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
   //Draw the scene here...you fill in the rest
 
 }
-
 
 void myGlutReshape(int x, int y)
 {
@@ -79,30 +79,27 @@ void initScene()
 {
   // This stuff is for lighting and materials. We'll learn more about
   // it later.
-   float light0_pos[] = {0.0, 3.0, 0.0, 1.0};
-   float diffuse0[] = {1.0, 1.0, 1.0, 0.5};
-   float ambient0[] = {0.1, 0.1, 0.1, 1.0};
-   float specular0[] = {1.0, 1.0, 1.0, 0.5};
+  float light0_pos[] = {0.0, 3.0, 0.0, 1.0};
+  float diffuse0[] = {1.0, 1.0, 1.0, 0.5};
+  float ambient0[] = {0.1, 0.1, 0.1, 1.0};
+  float specular0[] = {1.0, 1.0, 1.0, 0.5};
 
-   glEnable(GL_LIGHTING);
-   glEnable(GL_LIGHT0);
-   glShadeModel(GL_SMOOTH);
-   glEnable(GL_COLOR_MATERIAL);
-   glLightfv(GL_LIGHT0, GL_POSITION, light0_pos);
-   glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse0);
-   glLightfv(GL_LIGHT0, GL_AMBIENT, ambient0);
-   glLightfv(GL_LIGHT0, GL_SPECULAR, specular0);
+  glEnable(GL_LIGHTING);
+  glEnable(GL_LIGHT0);
+  glShadeModel(GL_SMOOTH);
+  glEnable(GL_COLOR_MATERIAL);
+  glLightfv(GL_LIGHT0, GL_POSITION, light0_pos);
+  glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse0);
+  glLightfv(GL_LIGHT0, GL_AMBIENT, ambient0);
+  glLightfv(GL_LIGHT0, GL_SPECULAR, specular0);
 
 
-   // You need to add the rest of the important GL state inits
-
+  // You need to add the rest of the important GL state inits
 }
 
 int main(int argc, char **argv)
 {
-  data = load_obj_file(argv[1]);
-
-   // setup glut
+  // setup glut
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
   glutInitWindowPosition(50, 50);
@@ -118,10 +115,11 @@ int main(int argc, char **argv)
   initScene();
 
   //Build the GU
-  glui = GLUI_Master.create_glui("OBJ Loader GUI", 0, 600, 50);
+  glui = GLUI_Master.create_glui("OBJ Loader GUI", 0);
 
   GLUI_Panel *objPanel = glui->add_panel("Obj Files");
   objFileNameTextField = glui->add_edittext_to_panel(objPanel, "Filename:", GLUI_EDITTEXT_TEXT, 0, OBJ_TEXTFIELD, textCB);
+  objFileNameTextField->set_text(argv[1]);
   glui->add_button_to_panel(objPanel, "Load", LOAD_BUTTON, buttonCB);
   glui->add_separator();
 
@@ -148,5 +146,3 @@ int main(int argc, char **argv)
   glutMainLoop();
   return EXIT_SUCCESS;
 }
-
-
