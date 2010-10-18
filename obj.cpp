@@ -329,4 +329,6 @@ struct obj_data *load_obj_file(const char *filename)
         printf("Unrecognized line in .obj file\n");
     }
   }
+
+  return d;
 }
