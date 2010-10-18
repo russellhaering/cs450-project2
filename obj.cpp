@@ -69,7 +69,7 @@ char *resize_linebuf(char *lbuf, off_t size)
   return lbuf;
 }
 
-struct obj_data *load_obj_file(char *filename)
+struct obj_data *load_obj_file(const char *filename)
 {
   int fd, ps, i, idx;
   char *fbuf, *bptr, *lbuf, *lptr, *eptr, fmask;

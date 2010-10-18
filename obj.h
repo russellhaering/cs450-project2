@@ -58,5 +58,5 @@ void *dyn_array_get(struct dyn_array *arr, long index);
 
 char *next_line(char *bptr);
 
-struct obj_data *load_obj_file(char *filename);
+struct obj_data *load_obj_file(const char *filename);
 #endif
