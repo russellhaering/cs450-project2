@@ -55,23 +55,47 @@ void colorCB(int id)
 
 void myGlutDisplay(void)
 {
-  int i;
+  int i, j;
   struct face *f;
+  struct vertex *v;
+  struct vertex_normal *vn;
   glClear(GL_COLOR_BUFFER_BIT  | GL_DEPTH_BUFFER_BIT);
   //Use color as the color to use when shading, combined with light
   glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
   //Draw the scene here...you fill in the rest
 
-  if (data == NULL) {
+  if (data == NULL || data->faces->count < 1) {
     printf("Nothing to render\n");
     return;
   }
 
+
+  // For now we are only supporting triangles
+  glBegin(GL_TRIANGLES);
+
   for (i = 0; i < data->faces->count; i++) {
     f = (struct face *) data->faces->items[i];
+    if (f->count != 3) {
+      printf("Skipping non-triangle face at index %d\n", i);
+      continue;
+    }
+    for (j = 0; j < f->count; j++) {
+      // Set the normal if there is one
+      if (f->vns != NULL) {
+        vn = (struct vertex_normal *) f->vns[j];
+        glNormal3f(vn->x, vn->y, vn->z);
+      }
+
+      // Set the vertex (there should always be one)
+      v = (struct vertex *) f->vs[j];
+      glVertex3f(v->x, v->y, v->z);
+    }
   }
 
   printf("Rendered %d faces\n", i);
+
+  glEnd();
+  glFlush();
 }
 
 void myGlutReshape(int x, int y)
