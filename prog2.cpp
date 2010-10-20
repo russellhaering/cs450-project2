@@ -17,7 +17,6 @@ enum projections {ORTHO, PERSP, FOV};
 const int WIN_WIDTH = 500;
 const int WIN_HEIGHT = 500;
 
-
 /** These are the live variables modified by the GUI ***/
 int main_window;
 int red = 255;
@@ -30,11 +29,13 @@ int projType = ORTHO;
 struct obj_data *data = NULL;
 GLUI *glui;
 GLUI_EditText *objFileNameTextField;
+GLUI_Spinner *fovSpinner;
 
 
 void projCB(int id)
 {
-
+  gluPerspective(fov, 1, 0, 10);
+  glutPostRedisplay();
 }
 
 void textCB(int id)
@@ -96,12 +97,15 @@ void myGlutDisplay(void)
 
   glEnd();
   glFlush();
+  glutSwapBuffers();
 }
 
-void myGlutReshape(int x, int y)
+void myGlutReshape (int x, int y)
 {
   // Code here to create a reshape that avoids distortion.  This means
   // the AR of the view volume matches the AR of the viewport
+  gluPerspective(fov, ((float) x / (float) y), 0, 10);
+  glutPostRedisplay();
 }
 
 
@@ -132,6 +136,8 @@ void initScene()
 
 
   // You need to add the rest of the important GL state inits
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
 }
 
 int main(int argc, char **argv)
@@ -164,7 +170,7 @@ int main(int argc, char **argv)
   GLUI_RadioGroup *projGroup = glui->add_radiogroup_to_panel(projPanel, &projType, -1, projCB);
   glui->add_radiobutton_to_group(projGroup, "Orthographic");
   glui->add_radiobutton_to_group(projGroup, "Perspective");
-  GLUI_Spinner *fovSpinner = glui->add_spinner_to_panel(projPanel, "FOV", GLUI_SPINNER_INT, &fov, FOV, projCB);
+  fovSpinner = glui->add_spinner_to_panel(projPanel, "FOV", GLUI_SPINNER_INT, &fov, FOV, projCB);
   fovSpinner->set_int_limits(0, 90);
 
   GLUI_Panel *colorPanel = glui->add_panel("Color");
