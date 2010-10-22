@@ -178,6 +178,10 @@ struct obj_data *load_obj_file(const char *filename)
     lbufcnt = 0;
 
     switch (lbuf[0]) {
+      case '#':
+        // Comments are boring
+        break;
+
       case 'v':
         switch (lbuf[1]) {
           case ' ':
