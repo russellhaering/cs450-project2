@@ -14,8 +14,10 @@ enum buttonTypes {OBJ_TEXTFIELD = 0, LOAD_BUTTON};
 enum colors {RED, GREEN, BLUE};
 enum projections {ORTHO, PERSP, FOV};
 
-const int WIN_WIDTH = 500;
-const int WIN_HEIGHT = 500;
+#define WIN_WIDTH         500
+#define WIN_HEIGHT        500
+
+#define ORTHO_DENOMINATOR 100
 
 /** These are the live variables modified by the GUI ***/
 int main_window;
@@ -23,6 +25,8 @@ int red = 255;
 int green = 255;
 int blue = 255;
 int fov = 90;
+int win_x;
+int win_y;
 int projType = ORTHO;
 
 /** Globals **/
@@ -31,9 +35,35 @@ GLUI *glui;
 GLUI_EditText *objFileNameTextField;
 GLUI_Spinner *fovSpinner;
 
+void update_projection()
+{
+  float x_offset;
+  float y_offset;
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+
+  switch (projType) {
+  case ORTHO:
+    x_offset = ((float) win_x / ORTHO_DENOMINATOR);
+    y_offset = ((float) win_y / ORTHO_DENOMINATOR);
+    glOrtho(-x_offset, x_offset, -y_offset, y_offset, 4, 15);
+    break;
+
+  case PERSP:
+    gluPerspective(fov, ((float) win_x / (float) win_y), 0.1, 0.5);
+    gluLookAt(0., 0., 0.3, 0., 0.1, 0., 0., 1., 0.);
+    break;
+
+  case FOV:
+    // This is used once for something apparently unrelated to the enum its in
+    printf("Uh Oh\n");
+    break;
+  }
+}
+
 void projCB(int id)
 {
-  //gluPerspective(40, 1.0, 0.1, .5);
+  update_projection();
   glutPostRedisplay();
 }
 
@@ -46,7 +76,6 @@ void buttonCB(int control)
 {
   struct obj_data *d, *curr;
   d = load_obj_file(objFileNameTextField->get_text());
-  printf("Loaded file with %d face\n", d->faces->count);
 
   if (data == NULL) {
     data = d;
@@ -115,9 +144,10 @@ void myGlutReshape (int x, int y)
 {
   // Code here to create a reshape that avoids distortion.  This means
   // the AR of the view volume matches the AR of the viewport
-  gluPerspective(40, 1.0, 0.1, 0.5);
-  gluLookAt(0., 0., 0.3, 0., 0.1, 0., 0., 1., 0.);
-  //glOrtho(-5, 5, -5, 5, 4, 15);
+  glViewport(0, 0, x, y);
+  win_x = x;
+  win_y = y;
+  update_projection();
   glutPostRedisplay();
 }
 
@@ -150,8 +180,6 @@ void initScene()
 
   // You need to add the rest of the important GL state inits
   glEnable(GL_DEPTH_TEST);
-  glLoadIdentity();
-  glMatrixMode(GL_MODELVIEW);
 }
 
 int main(int argc, char **argv)
