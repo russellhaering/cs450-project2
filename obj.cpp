@@ -110,6 +110,8 @@ struct obj_data *load_obj_file(const char *filename)
     return NULL;
   }
 
+  d->next = NULL;
+
   d->vs = (struct dyn_array *) malloc(sizeof(struct dyn_array));
   if (d->vs == NULL) {
     free(d);

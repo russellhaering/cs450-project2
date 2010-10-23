@@ -22,7 +22,7 @@ int main_window;
 int red = 255;
 int green = 255;
 int blue = 255;
-int fov = 30;
+int fov = 90;
 int projType = ORTHO;
 
 /** Globals **/
@@ -31,10 +31,9 @@ GLUI *glui;
 GLUI_EditText *objFileNameTextField;
 GLUI_Spinner *fovSpinner;
 
-
 void projCB(int id)
 {
-  gluPerspective(fov, 1, 0, 10);
+  //gluPerspective(40, 1.0, 0.1, .5);
   glutPostRedisplay();
 }
 
@@ -45,7 +44,21 @@ void textCB(int id)
 
 void buttonCB(int control)
 {
-  data = load_obj_file(objFileNameTextField->get_text());
+  struct obj_data *d, *curr;
+  d = load_obj_file(objFileNameTextField->get_text());
+  printf("Loaded file with %d face\n", d->faces->count);
+
+  if (data == NULL) {
+    data = d;
+  }
+  else {
+    curr = data;
+    while (curr->next != NULL) {
+      curr = curr->next;
+    }
+    curr->next = d;
+    fprintf(stderr, "Foobar\n");
+  }
   glutPostRedisplay();
 }
 
@@ -58,6 +71,7 @@ void myGlutDisplay(void)
 {
   int i, j;
   struct face *f;
+  struct obj_data *curr;
   struct vertex *v;
   struct vertex_normal *vn;
   glClear(GL_COLOR_BUFFER_BIT  | GL_DEPTH_BUFFER_BIT);
@@ -65,37 +79,34 @@ void myGlutDisplay(void)
   glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
   //Draw the scene here...you fill in the rest
 
-  if (data == NULL || data->faces->count < 1) {
-    printf("Nothing to render\n");
-    return;
-  }
+  curr = data;
+  while (curr != NULL) {
+    // For now we are only supporting triangles
+    glBegin(GL_TRIANGLES);
 
-
-  // For now we are only supporting triangles
-  glBegin(GL_TRIANGLES);
-
-  for (i = 0; i < data->faces->count; i++) {
-    f = (struct face *) data->faces->items[i];
-    if (f->count != 3) {
-      printf("Skipping non-triangle face at index %d\n", i);
-      continue;
-    }
-    for (j = 0; j < f->count; j++) {
-      // Set the normal if there is one
-      if (f->vns != NULL) {
-        vn = (struct vertex_normal *) f->vns[j];
-        glNormal3f(vn->x, vn->y, vn->z);
+    for (i = 0; i < curr->faces->count; i++) {
+      f = (struct face *) curr->faces->items[i];
+      if (f->count != 3) {
+        printf("Skipping non-triangle face at index %d\n", i);
+        continue;
       }
+      for (j = 0; j < f->count; j++) {
+        // Set the normal if there is one
+        if (f->vns != NULL) {
+          vn = (struct vertex_normal *) f->vns[j];
+          glNormal3f(vn->x, vn->y, vn->z);
+        }
 
-      // Set the vertex (there should always be one)
-      v = (struct vertex *) f->vs[j];
-      glVertex3f(v->x, v->y, v->z);
+        // Set the vertex (there should always be one)
+        v = (struct vertex *) f->vs[j];
+        glVertex3f(v->x, v->y, v->z);
+      }
     }
+
+    printf("Rendered %d faces\n", i);
+    glEnd();
+    curr = curr->next;
   }
-
-  printf("Rendered %d faces\n", i);
-
-  glEnd();
   glFlush();
   glutSwapBuffers();
 }
@@ -104,7 +115,9 @@ void myGlutReshape (int x, int y)
 {
   // Code here to create a reshape that avoids distortion.  This means
   // the AR of the view volume matches the AR of the viewport
-  gluPerspective(fov, ((float) x / (float) y), 0, 10);
+  gluPerspective(40, 1.0, 0.1, 0.5);
+  gluLookAt(0., 0., 0.3, 0., 0.1, 0., 0., 1., 0.);
+  //glOrtho(-5, 5, -5, 5, 4, 15);
   glutPostRedisplay();
 }
 
@@ -136,15 +149,16 @@ void initScene()
 
 
   // You need to add the rest of the important GL state inits
-  glMatrixMode(GL_MODELVIEW);
+  glEnable(GL_DEPTH_TEST);
   glLoadIdentity();
+  glMatrixMode(GL_MODELVIEW);
 }
 
 int main(int argc, char **argv)
 {
   // setup glut
   glutInit(&argc, argv);
-  glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
+  glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
   glutInitWindowPosition(50, 50);
   glutInitWindowSize(WIN_WIDTH, WIN_HEIGHT);
 
@@ -170,7 +184,7 @@ int main(int argc, char **argv)
   GLUI_RadioGroup *projGroup = glui->add_radiogroup_to_panel(projPanel, &projType, -1, projCB);
   glui->add_radiobutton_to_group(projGroup, "Orthographic");
   glui->add_radiobutton_to_group(projGroup, "Perspective");
-  fovSpinner = glui->add_spinner_to_panel(projPanel, "FOV", GLUI_SPINNER_INT, &fov, FOV, projCB);
+  GLUI_Spinner *fovSpinner =glui->add_spinner_to_panel(projPanel, "FOV", GLUI_SPINNER_INT, &fov, FOV, projCB);
   fovSpinner->set_int_limits(0, 90);
 
   GLUI_Panel *colorPanel = glui->add_panel("Color");

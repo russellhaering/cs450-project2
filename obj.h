@@ -48,6 +48,7 @@ struct obj_data {
   struct dyn_array *vts;
   struct dyn_array *vns;
   struct dyn_array *faces;
+  struct obj_data *next;
 };
 
 // Function prototypes
