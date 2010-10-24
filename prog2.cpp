@@ -21,6 +21,8 @@ enum projections {ORTHO, PERSP, FOV};
 
 #define SBUF_SIZE         64
 
+#define MAXD              0xFFFFFFFF
+
 /** These are the live variables modified by the GUI ***/
 int main_window;
 int red = 255;
@@ -108,7 +110,6 @@ void buttonCB(int control)
       curr = curr->next;
     }
     curr->next = d;
-    fprintf(stderr, "Foobar\n");
   }
   glutPostRedisplay();
 }
@@ -191,8 +192,9 @@ void myGlutReshape (int x, int y)
 
 void myGlutMouse (int button, int state, int x, int y)
 {
-  int s, hits;
+  int hits, i, names, selected;
   GLuint selectBuf[SBUF_SIZE] = {0};
+  GLuint min, *cur;
   GLint viewport[4];
 
   if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
@@ -219,6 +221,30 @@ void myGlutMouse (int button, int state, int x, int y)
     hits = glRenderMode(GL_RENDER);
 
     printf("%d hits\n", hits);
+
+    min = MAXD;
+    cur = selectBuf;
+    selected = -1;
+
+    for (i = 0; i < hits; i++) {
+      names = *cur;
+
+      // Update the current minimum
+      if (*(cur + 1) < min) {
+        min = *(cur + 1);
+
+        // If this record is named then store the (first) name
+        if (names > 0) {
+          selected = *(cur + 3);
+        }
+      }
+
+      cur += (3 + names);
+    }
+
+    if (selected >= 0) {
+      printf("Hit on object %d\n", selected);
+    }
   }
 }
 
