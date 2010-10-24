@@ -19,14 +19,14 @@ enum projections {ORTHO, PERSP, FOV};
 
 #define ORTHO_DENOMINATOR 100
 
+#define SBUF_SIZE         64
+
 /** These are the live variables modified by the GUI ***/
 int main_window;
 int red = 255;
 int green = 255;
 int blue = 255;
 int fov = 90;
-int win_x;
-int win_y;
 int projType = ORTHO;
 
 /** Globals **/
@@ -35,23 +35,36 @@ GLUI *glui;
 GLUI_EditText *objFileNameTextField;
 GLUI_Spinner *fovSpinner;
 
-void update_projection()
+void do_ortho()
 {
+  GLint viewport[4];
   float x_offset;
   float y_offset;
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
 
+  glGetIntegerv(GL_VIEWPORT, viewport);
+  x_offset = ((float) viewport[2] / ORTHO_DENOMINATOR);
+  y_offset = ((float) viewport[3] / ORTHO_DENOMINATOR);
+  glOrtho(-x_offset, x_offset, -y_offset, y_offset, 4, 15);
+}
+
+void do_perspective()
+{
+  GLint viewport[4];
+
+  glGetIntegerv(GL_VIEWPORT, viewport);
+  gluPerspective(fov, ((float) viewport[2] / (float) viewport[3]), 0.1, 0.5);
+  gluLookAt(0., 0., 0.3, 0., 0.1, 0., 0., 1., 0.);
+}
+
+void update_projection()
+{
   switch (projType) {
   case ORTHO:
-    x_offset = ((float) win_x / ORTHO_DENOMINATOR);
-    y_offset = ((float) win_y / ORTHO_DENOMINATOR);
-    glOrtho(-x_offset, x_offset, -y_offset, y_offset, 4, 15);
+    do_ortho();
     break;
 
   case PERSP:
-    gluPerspective(fov, ((float) win_x / (float) win_y), 0.1, 0.5);
-    gluLookAt(0., 0., 0.3, 0., 0.1, 0., 0., 1., 0.);
+    do_perspective();
     break;
 
   case FOV:
@@ -63,6 +76,7 @@ void update_projection()
 
 void projCB(int id)
 {
+  glLoadIdentity();
   update_projection();
   glutPostRedisplay();
 }
@@ -145,18 +159,41 @@ void myGlutReshape (int x, int y)
   // Code here to create a reshape that avoids distortion.  This means
   // the AR of the view volume matches the AR of the viewport
   glViewport(0, 0, x, y);
-  win_x = x;
-  win_y = y;
+  glLoadIdentity();
   update_projection();
   glutPostRedisplay();
 }
 
 
 
-void myGlutMouse (int button, int button_state, int x, int y)
+void myGlutMouse (int button, int state, int x, int y)
 {
+  /*
+  int s;
+  GLuint selectBuf[SBUF_SIZE] = {0};
+  GLint hits;
+  GLint viewport[4];
+
+  if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+    glGetIntegerv(GL_VIEWPORT, viewport);
+    glSelectBuffer(SBUF_SIZE, selectBuf);
+    glRenderMode(GL_SELECT);
+
+    glInitNames();
+    glPushNames(0);
+
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+
+    gluPickMatrix(x, (viewport[3] - y), 2, 2, viewport);
+    glOrtho
 
 
+
+
+  }
+  */
 }
 
 void initScene()
