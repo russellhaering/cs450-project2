@@ -41,46 +41,47 @@ GLUI_EditText *objFileNameTextField;
 GLUI_Spinner *fovSpinner;
 int selected = -1;
 
-void do_ortho()
+
+/**
+ * update_projection - configure the specifed projection mode on the current
+ * matrix (you probably want GL_PROJECTION).
+ */
+void update_projection()
 {
   GLint viewport[4];
   float x_offset;
   float y_offset;
 
+  // Load the viewport size
   glGetIntegerv(GL_VIEWPORT, viewport);
-  x_offset = ((float) viewport[2] / ORTHO_DENOMINATOR);
-  y_offset = ((float) viewport[3] / ORTHO_DENOMINATOR);
-  glOrtho(-x_offset, x_offset, -y_offset, y_offset, 4, 15);
-}
 
-void do_perspective()
-{
-  GLint viewport[4];
-
-  glGetIntegerv(GL_VIEWPORT, viewport);
-  gluPerspective(fov, ((float) viewport[2] / (float) viewport[3]), 0.1, 0.5);
-  gluLookAt(0., 0., 0.3, 0., 0.1, 0., 0., 1., 0.);
-}
-
-void update_projection()
-{
   switch (projType) {
   case ORTHO:
-    do_ortho();
+    // Configure orthographic projection
+    x_offset = ((float) viewport[2] / ORTHO_DENOMINATOR);
+    y_offset = ((float) viewport[3] / ORTHO_DENOMINATOR);
+    glOrtho(-x_offset, x_offset, -y_offset, y_offset, 4, 15);
     break;
 
   case PERSP:
-    do_perspective();
+    // Configure perspective projection
+    gluPerspective(fov, ((float) viewport[2] / (float) viewport[3]), 0.1, 0.5);
+    gluLookAt(0., 0., 0.3, 0., 0.1, 0., 0., 1., 0.);
     break;
 
   case FOV:
     // This is used once for something apparently unrelated to the enum its in
+
+  default:
     printf("Uh Oh\n");
-    break;
   }
 }
 
-void projCB(int id)
+/**
+ * projection_callback - called when projection (or color, for soem reason)
+ * parameters are modified, updates the projection mode and fires a redisplay
+ */
+void projection_callback(int id)
 {
   // Set up the projection matrix
   glMatrixMode(GL_PROJECTION);
@@ -95,12 +96,19 @@ void projCB(int id)
   glutPostRedisplay();
 }
 
-void textCB(int id)
+/**
+ * text_callback - fired when the filename text is modified, not much reason
+ * to do anything in here.
+ */
+void text_callback(int id)
 {
-
 }
 
-void buttonCB(int control)
+/**
+ * button_callback - fired when the load file button is pressed, loads the
+ * currently specified file and fires a redisplay
+ */
+void button_callback(int control)
 {
   struct obj_data *d, *curr;
   d = load_obj_file(objFileNameTextField->get_text());
@@ -118,11 +126,18 @@ void buttonCB(int control)
   glutPostRedisplay();
 }
 
-void colorCB(int id)
+/**
+ * color_callback - fired when the color parameters change, but so is
+ * the projection callback. This doesn't do anything to avoid a double
+ * redisplay.
+ */
+void color_callback(int id)
 {
-
 }
 
+/**
+ * draw_object - draw the specified object in the current polygon mode
+ */
 void draw_object(struct obj_data *curr)
 {
     int i, j;
@@ -156,6 +171,10 @@ void draw_object(struct obj_data *curr)
     glEnd();
 }
 
+/**
+ * draw_objects - draw all loaded objects, with a wireframe and color on the
+ * selected object.
+ */
 void draw_objects(void)
 {
   int i;
@@ -197,7 +216,11 @@ void draw_objects(void)
   printf("Rendered %d objects\n", i);
 }
 
-void display_cb()
+/**
+ * display_callback - the display callback, called to draw the scene. Clears
+ * the scene, draws the objects then flushes and swaps the bufers.
+ */
+void display_callback()
 {
   glClear(GL_COLOR_BUFFER_BIT  | GL_DEPTH_BUFFER_BIT);
   glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
@@ -206,7 +229,11 @@ void display_cb()
   glutSwapBuffers();
 }
 
-void myGlutReshape (int x, int y)
+/**
+ * reshape_callback - called when the window is reshaped, updates the viewport
+ * and projection then redraws the scene.
+ */
+void reshape_callback (int x, int y)
 {
   // Update the viewport
   glViewport(0, 0, x, y);
@@ -221,8 +248,11 @@ void myGlutReshape (int x, int y)
   glLoadIdentity();
 }
 
-
-void myGlutMouse (int button, int state, int x, int y)
+/**
+ * mouse_callback - called on mouse clicks, updates the global 'selected'
+ * ID to reflect which object was clicked, then redraws the scene.
+ */
+void mouse_calback (int button, int state, int x, int y)
 {
   int hits, i, names;
   GLuint selectBuf[SBUF_SIZE] = {0};
@@ -230,10 +260,12 @@ void myGlutMouse (int button, int state, int x, int y)
   GLint viewport[4];
 
   if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+    // Get the viewport parameters
     glGetIntegerv(GL_VIEWPORT, viewport);
     glSelectBuffer(SBUF_SIZE, selectBuf);
-    glRenderMode(GL_SELECT);
 
+    // Go into selection mode and set up the projection and modeliew matrices
+    glRenderMode(GL_SELECT);
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
@@ -242,9 +274,12 @@ void myGlutMouse (int button, int state, int x, int y)
     update_projection();
 
     glMatrixMode(GL_MODELVIEW);
+
+    // Set up the names stack then draw the scene
     glInitNames();
     draw_objects();
 
+    // Restore render mode and associated matrices
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
@@ -257,15 +292,13 @@ void myGlutMouse (int button, int state, int x, int y)
     min = MAXD;
     cur = selectBuf;
 
+    // Find which object was hit if one was
     if (hits > 0) {
       for (i = 0; i < hits; i++) {
         names = *cur;
 
-        // Update the current minimum
         if (*(cur + 1) < min) {
           min = *(cur + 1);
-
-          // If this record is named then store the (first) name
           if (names > 0) {
             selected = *(cur + 3);
           }
@@ -274,15 +307,17 @@ void myGlutMouse (int button, int state, int x, int y)
         cur += (3 + names);
       }
     }
+    // Otherwise no objects are selected
     else {
       selected = -1;
     }
 
+    // Redraw the scene to update color/wireframe
     glutPostRedisplay();
   }
 }
 
-void initScene()
+void init_scene()
 {
   // This stuff is for lighting and materials. We'll learn more about
   // it later.
@@ -313,36 +348,36 @@ int main(int argc, char **argv)
 
   //You'll need a handle for your main window for GLUI
   main_window = glutCreateWindow("OBJ Loader");
-  glutDisplayFunc(display_cb);
-  glutReshapeFunc(myGlutReshape);
-  glutMouseFunc(myGlutMouse);
+  glutDisplayFunc(display_callback);
+  glutReshapeFunc(reshape_callback);
+  glutMouseFunc(mouse_calback);
 
   // Initialize my Scene
-  initScene();
+  init_scene();
 
   //Build the GU
   glui = GLUI_Master.create_glui("OBJ Loader GUI", 0);
 
   GLUI_Panel *objPanel = glui->add_panel("Obj Files");
-  objFileNameTextField = glui->add_edittext_to_panel(objPanel, "Filename:", GLUI_EDITTEXT_TEXT, 0, OBJ_TEXTFIELD, textCB);
+  objFileNameTextField = glui->add_edittext_to_panel(objPanel, "Filename:", GLUI_EDITTEXT_TEXT, 0, OBJ_TEXTFIELD, text_callback);
   objFileNameTextField->set_text(argv[1]);
-  glui->add_button_to_panel(objPanel, "Load", LOAD_BUTTON, buttonCB);
+  glui->add_button_to_panel(objPanel, "Load", LOAD_BUTTON, button_callback);
   glui->add_separator();
 
   GLUI_Panel *projPanel = glui->add_panel("Projection");
-  GLUI_RadioGroup *projGroup = glui->add_radiogroup_to_panel(projPanel, &projType, -1, projCB);
+  GLUI_RadioGroup *projGroup = glui->add_radiogroup_to_panel(projPanel, &projType, -1, projection_callback);
   glui->add_radiobutton_to_group(projGroup, "Orthographic");
   glui->add_radiobutton_to_group(projGroup, "Perspective");
-  GLUI_Spinner *fovSpinner =glui->add_spinner_to_panel(projPanel, "FOV", GLUI_SPINNER_INT, &fov, FOV, projCB);
+  GLUI_Spinner *fovSpinner =glui->add_spinner_to_panel(projPanel, "FOV", GLUI_SPINNER_INT, &fov, FOV, projection_callback);
   fovSpinner->set_int_limits(0, 90);
 
   GLUI_Panel *colorPanel = glui->add_panel("Color");
   /* These should be done with floats but the speed won't work */
-  GLUI_Spinner *redValue = glui->add_spinner_to_panel(colorPanel, "Red", 2, &red, RED, colorCB);
+  GLUI_Spinner *redValue = glui->add_spinner_to_panel(colorPanel, "Red", 2, &red, RED, color_callback);
   redValue->set_int_limits(0, MAX_COLOR);
-  GLUI_Spinner *greenValue = glui->add_spinner_to_panel(colorPanel, "Green", 2, &green, GREEN, colorCB);
+  GLUI_Spinner *greenValue = glui->add_spinner_to_panel(colorPanel, "Green", 2, &green, GREEN, color_callback);
   greenValue->set_int_limits(0, MAX_COLOR);
-  GLUI_Spinner *blueValue = glui->add_spinner_to_panel(colorPanel, "Blue", 2, &blue, BLUE, colorCB);
+  GLUI_Spinner *blueValue = glui->add_spinner_to_panel(colorPanel, "Blue", 2, &blue, BLUE, color_callback);
   blueValue->set_int_limits(0, MAX_COLOR);
   glui->set_main_gfx_window(main_window);
 
