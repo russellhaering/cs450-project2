@@ -76,8 +76,16 @@ void update_projection()
 
 void projCB(int id)
 {
+  // Set up the projection matrix
+  glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   update_projection();
+
+  // Set up the modelview matrix
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+
+  // Redisplay
   glutPostRedisplay();
 }
 
@@ -156,12 +164,17 @@ void myGlutDisplay(void)
 
 void myGlutReshape (int x, int y)
 {
-  // Code here to create a reshape that avoids distortion.  This means
-  // the AR of the view volume matches the AR of the viewport
+  // Update the viewport
   glViewport(0, 0, x, y);
+
+  // Set up the projection matrix
+  glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   update_projection();
-  glutPostRedisplay();
+
+  // Set up the modelview matrix
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
 }
 
 
