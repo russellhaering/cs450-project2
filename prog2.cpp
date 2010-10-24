@@ -23,11 +23,13 @@ enum projections {ORTHO, PERSP, FOV};
 
 #define MAXD              0xFFFFFFFF
 
+#define MAX_COLOR         255
+
 /** These are the live variables modified by the GUI ***/
 int main_window;
-int red = 255;
-int green = 255;
-int blue = 255;
+int red = MAX_COLOR;
+int green = MAX_COLOR;
+int blue = MAX_COLOR;
 int fov = 90;
 int projType = ORTHO;
 
@@ -36,6 +38,7 @@ struct obj_data *data = NULL;
 GLUI *glui;
 GLUI_EditText *objFileNameTextField;
 GLUI_Spinner *fovSpinner;
+int selected = -1;
 
 void do_ortho()
 {
@@ -134,6 +137,13 @@ void draw_objects(void)
 
     // For now we are only supporting triangles
     glBegin(GL_TRIANGLES);
+    if (k == selected) {
+      printf("Drawing with colors, what fun!\n");
+      glColor3f(((float) red / MAX_COLOR), ((float) green / MAX_COLOR), ((float) blue / MAX_COLOR));
+    }
+    else {
+      glColor3f(1, 1, 1);
+    }
 
     for (i = 0; i < curr->faces->count; i++) {
       f = (struct face *) curr->faces->items[i];
@@ -192,7 +202,7 @@ void myGlutReshape (int x, int y)
 
 void myGlutMouse (int button, int state, int x, int y)
 {
-  int hits, i, names, selected;
+  int hits, i, names;
   GLuint selectBuf[SBUF_SIZE] = {0};
   GLuint min, *cur;
   GLint viewport[4];
@@ -224,27 +234,29 @@ void myGlutMouse (int button, int state, int x, int y)
 
     min = MAXD;
     cur = selectBuf;
-    selected = -1;
 
-    for (i = 0; i < hits; i++) {
-      names = *cur;
+    if (hits > 0) {
+      for (i = 0; i < hits; i++) {
+        names = *cur;
 
-      // Update the current minimum
-      if (*(cur + 1) < min) {
-        min = *(cur + 1);
+        // Update the current minimum
+        if (*(cur + 1) < min) {
+          min = *(cur + 1);
 
-        // If this record is named then store the (first) name
-        if (names > 0) {
-          selected = *(cur + 3);
+          // If this record is named then store the (first) name
+          if (names > 0) {
+            selected = *(cur + 3);
+          }
         }
+
+        cur += (3 + names);
       }
-
-      cur += (3 + names);
+    }
+    else {
+      selected = -1;
     }
 
-    if (selected >= 0) {
-      printf("Hit on object %d\n", selected);
-    }
+    glutPostRedisplay();
   }
 }
 
@@ -266,8 +278,6 @@ void initScene()
   glLightfv(GL_LIGHT0, GL_AMBIENT, ambient0);
   glLightfv(GL_LIGHT0, GL_SPECULAR, specular0);
 
-
-  // You need to add the rest of the important GL state inits
   glEnable(GL_DEPTH_TEST);
 }
 
@@ -307,11 +317,11 @@ int main(int argc, char **argv)
   GLUI_Panel *colorPanel = glui->add_panel("Color");
   /* These should be done with floats but the speed won't work */
   GLUI_Spinner *redValue = glui->add_spinner_to_panel(colorPanel, "Red", 2, &red, RED, colorCB);
-  redValue->set_int_limits(0, 255);
+  redValue->set_int_limits(0, MAX_COLOR);
   GLUI_Spinner *greenValue = glui->add_spinner_to_panel(colorPanel, "Green", 2, &green, GREEN, colorCB);
-  greenValue->set_int_limits(0, 255);
+  greenValue->set_int_limits(0, MAX_COLOR);
   GLUI_Spinner *blueValue = glui->add_spinner_to_panel(colorPanel, "Blue", 2, &blue, BLUE, colorCB);
-  blueValue->set_int_limits(0, 255);
+  blueValue->set_int_limits(0, MAX_COLOR);
   glui->set_main_gfx_window(main_window);
 
   // We register the idle callback with GLUI, *not* with GLUT
