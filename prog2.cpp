@@ -122,28 +122,15 @@ void colorCB(int id)
 
 }
 
-void draw_objects(void)
+void draw_object(struct obj_data *curr)
 {
-  int i, j, k;
-  struct face *f;
-  struct obj_data *curr;
-  struct vertex *v;
-  struct vertex_normal *vn;
-
-  curr = data;
-  k = 0;
-  while (curr != NULL) {
-    glPushName(k);
+    int i, j;
+    struct face *f;
+    struct vertex *v;
+    struct vertex_normal *vn;
 
     // For now we are only supporting triangles
     glBegin(GL_TRIANGLES);
-    if (k == selected) {
-      printf("Drawing with colors, what fun!\n");
-      glColor3f(((float) red / MAX_COLOR), ((float) green / MAX_COLOR), ((float) blue / MAX_COLOR));
-    }
-    else {
-      glColor3f(1, 1, 1);
-    }
 
     for (i = 0; i < curr->faces->count; i++) {
       f = (struct face *) curr->faces->items[i];
@@ -166,13 +153,35 @@ void draw_objects(void)
 
     printf("Rendered %d faces\n", i);
     glEnd();
+}
+
+void draw_objects(void)
+{
+  int i;
+  struct obj_data *curr;
+
+  curr = data;
+  i = 0;
+  while (curr != NULL) {
+    glPushName(i);
+
+    // Set the color - white for non-selected, colored for selected
+    if (i == selected) {
+      glColor3f(((float) red / MAX_COLOR), ((float) green / MAX_COLOR), ((float) blue / MAX_COLOR));
+    }
+    else {
+      glColor3f(1, 1, 1);
+    }
+
+    // Draw the object
+    draw_object(curr);
 
     glPopName();
 
     curr = curr->next;
-    k++;
+    i++;
   }
-  printf("Rendered %d objects\n", k);
+  printf("Rendered %d objects\n", i);
 }
 
 void display_cb()
