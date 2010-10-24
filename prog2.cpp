@@ -118,20 +118,19 @@ void colorCB(int id)
 
 }
 
-void myGlutDisplay(void)
+void draw_objects(void)
 {
-  int i, j;
+  int i, j, k;
   struct face *f;
   struct obj_data *curr;
   struct vertex *v;
   struct vertex_normal *vn;
-  glClear(GL_COLOR_BUFFER_BIT  | GL_DEPTH_BUFFER_BIT);
-  //Use color as the color to use when shading, combined with light
-  glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-  //Draw the scene here...you fill in the rest
 
   curr = data;
+  k = 0;
   while (curr != NULL) {
+    glPushName(k);
+
     // For now we are only supporting triangles
     glBegin(GL_TRIANGLES);
 
@@ -156,8 +155,20 @@ void myGlutDisplay(void)
 
     printf("Rendered %d faces\n", i);
     glEnd();
+
+    glPopName();
+
     curr = curr->next;
+    k++;
   }
+  printf("Rendered %d objects\n", k);
+}
+
+void display_cb()
+{
+  glClear(GL_COLOR_BUFFER_BIT  | GL_DEPTH_BUFFER_BIT);
+  glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+  draw_objects();
   glFlush();
   glutSwapBuffers();
 }
@@ -178,13 +189,10 @@ void myGlutReshape (int x, int y)
 }
 
 
-
 void myGlutMouse (int button, int state, int x, int y)
 {
-  /*
-  int s;
+  int s, hits;
   GLuint selectBuf[SBUF_SIZE] = {0};
-  GLint hits;
   GLint viewport[4];
 
   if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
@@ -192,21 +200,26 @@ void myGlutMouse (int button, int state, int x, int y)
     glSelectBuffer(SBUF_SIZE, selectBuf);
     glRenderMode(GL_SELECT);
 
-    glInitNames();
-    glPushNames(0);
-
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
 
     gluPickMatrix(x, (viewport[3] - y), 2, 2, viewport);
-    glOrtho
+    update_projection();
 
+    glMatrixMode(GL_MODELVIEW);
+    glInitNames();
+    draw_objects();
 
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glFlush();
 
+    hits = glRenderMode(GL_RENDER);
 
+    printf("%d hits\n", hits);
   }
-  */
 }
 
 void initScene()
@@ -242,7 +255,7 @@ int main(int argc, char **argv)
 
   //You'll need a handle for your main window for GLUI
   main_window = glutCreateWindow("OBJ Loader");
-  glutDisplayFunc(myGlutDisplay);
+  glutDisplayFunc(display_cb);
   glutReshapeFunc(myGlutReshape);
   glutMouseFunc(myGlutMouse);
 
