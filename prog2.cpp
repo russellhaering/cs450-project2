@@ -24,6 +24,7 @@ enum projections {ORTHO, PERSP, FOV};
 #define MAXD              0xFFFFFFFF
 
 #define MAX_COLOR         255
+#define WIREFRAME_OFFSET  -10
 
 /** These are the live variables modified by the GUI ***/
 int main_window;
@@ -175,6 +176,18 @@ void draw_objects(void)
 
     // Draw the object
     draw_object(curr);
+
+    // Draw the wireframe on selected objects
+    if (i == selected) {
+      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+      glEnable(GL_POLYGON_OFFSET_LINE);
+      glPolygonOffset(0, WIREFRAME_OFFSET);
+      glColor3f(1, 0, 0);
+      draw_object(curr);
+      glPolygonOffset(0, 0);
+      glDisable(GL_POLYGON_OFFSET_LINE);
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
 
     glPopName();
 
