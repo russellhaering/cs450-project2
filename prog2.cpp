@@ -377,7 +377,6 @@ int main(int argc, char **argv)
 
   GLUI_Panel *objPanel = glui->add_panel("Obj Files");
   objFileNameTextField = glui->add_edittext_to_panel(objPanel, "Filename:", GLUI_EDITTEXT_TEXT, 0, OBJ_TEXTFIELD, text_callback);
-  objFileNameTextField->set_text(argv[1]);
   glui->add_button_to_panel(objPanel, "Load", LOAD_BUTTON, button_callback);
   glui->add_separator();
 
