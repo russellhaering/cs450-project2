@@ -29,6 +29,15 @@ enum projections {ORTHO, PERSP, FOV};
 #define CLIPPING_NEAR     0.1
 #define CLIPPING_FAR      20
 
+#define PERSP_CAM_LOC     0, 0, .3
+#define PERSP_CAM_TGT     0, .1, 0
+#define PERSP_CAM_UP      0, 1, 0
+
+#define ORTHO_CAM_LOC     0, 0, .3
+#define ORTHO_CAM_TGT     0, .1, 0
+#define ORTHO_CAM_UP      0, 1, 0
+
+
 /** These are the live variables modified by the GUI ***/
 int main_window;
 int red = MAX_COLOR;
@@ -64,12 +73,17 @@ void update_projection()
     x_offset = ((float) viewport[2] / ORTHO_DENOMINATOR);
     y_offset = ((float) viewport[3] / ORTHO_DENOMINATOR);
     glOrtho(-x_offset, x_offset, -y_offset, y_offset, CLIPPING_NEAR, CLIPPING_FAR);
+    gluLookAt(ORTHO_CAM_LOC,
+              ORTHO_CAM_TGT,
+              ORTHO_CAM_UP);
     break;
 
   case PERSP:
     // Configure perspective projection
     gluPerspective(fov, ((float) viewport[2] / (float) viewport[3]), CLIPPING_NEAR, CLIPPING_FAR);
-    gluLookAt(0., 0., 0.3, 0., 0.1, 0., 0., 1., 0.);
+    gluLookAt(PERSP_CAM_LOC,
+              PERSP_CAM_TGT,
+              PERSP_CAM_UP);
     break;
 
   case FOV:
