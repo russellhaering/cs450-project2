@@ -24,7 +24,7 @@ enum projections {ORTHO, PERSP, FOV};
 #define MAXD              0xFFFFFFFF
 
 #define MAX_COLOR         255
-#define WIREFRAME_OFFSET  -10
+#define WIREFRAME_OFFSET  -100.0
 
 #define CLIPPING_NEAR     0.1
 #define CLIPPING_FAR      20
@@ -355,7 +355,7 @@ void init_scene()
 
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_POLYGON_OFFSET_LINE);
-  glPolygonOffset(1.0, 10.0);
+  glPolygonOffset(0, WIREFRAME_OFFSET);
 }
 
 int main(int argc, char **argv)
