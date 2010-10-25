@@ -215,13 +215,14 @@ void draw_objects(void)
 
     // Draw the wireframe on selected objects
     if (i == selected) {
+      // Switch to line mode
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-      glEnable(GL_POLYGON_OFFSET_LINE);
-      glPolygonOffset(0, WIREFRAME_OFFSET);
+
+      // Draw red lines
       glColor3f(1, 0, 0);
       draw_object(curr);
-      glPolygonOffset(0, 0);
-      glDisable(GL_POLYGON_OFFSET_LINE);
+
+      // Switch back to fill mode
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
 
@@ -353,6 +354,8 @@ void init_scene()
   glLightfv(GL_LIGHT0, GL_SPECULAR, specular0);
 
   glEnable(GL_DEPTH_TEST);
+  glEnable(GL_POLYGON_OFFSET_LINE);
+  glPolygonOffset(1.0, 10.0);
 }
 
 int main(int argc, char **argv)
